@@ -15,10 +15,20 @@ import java.io.FileReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+/**
+ * @author Kyle Doan
+ * @version TCSS 342 - Spring 2015
+ */
 public class Huffman {
-
+	/** The number of bits in one byte */
 	public final static int ONE_BYTE = 8;
-
+	
+	/**
+	 * Gather the character frequency information for the file specified in parameter path.  
+	 * The frequency information is returned from this function in a map.
+	 * @param path a specified file
+	 * @return the map of frequency of the character
+	 */
 	public static Map<Character, Integer> getCharacterFrequencies(String path) {
 		try {
 			FileReader input = new FileReader(path);
@@ -45,17 +55,25 @@ public class Huffman {
 		}
 	}
 	
+	/**
+	 * Compute a Huffman encoding for the specified character frequencies.  
+	 * The encoding should be returned in a map from characters to strings.
+	 * @param frequencies
+	 * @return
+	 */
 	public static Map<Character, String> getEncoding(Map<Character, Integer> frequencies) {
 		Map<Character, String> result = new HashMap<>();
 		HuffmanNode root = buildTree(frequencies);
 		encode(root, result, "");
 		return result;
 	}
-
+	
+	/**
+	 * Build a huffman tree.
+	 * @param freq
+	 * @return
+	 */
 	private static HuffmanNode buildTree(Map<Character, Integer> freq) {
-		if (freq == null) {
-			throw new NullPointerException("");
-		}
 		Queue<HuffmanNode> queue = new PriorityQueue<>();
 		for (char letter : freq.keySet()) {
 			queue.add(new HuffmanNode(freq.get(letter), letter));
@@ -68,7 +86,13 @@ public class Huffman {
       	}
       	return queue.peek();
 	}
-
+	
+	/**
+	 * Map the character to the appropriate bitstring based on the tree.
+	 * @param root
+	 * @param map
+	 * @param code
+	 */
 	private static void encode(HuffmanNode root, Map<Character, String> map, String code) {
 		if (root.left == null && root.right == null) {
 			map.put(root.letter, code);
@@ -78,19 +102,33 @@ public class Huffman {
       	}
 	}
 	
-	public static double getCompressionRatio(Map<Character, Integer> frequencies, Map<Character, String> encoding) {
+	/**
+	 * Return the compression ratio that would be achieved by compressing the data. 
+	 * @param frequencies
+	 * @param encoding
+	 * @return
+	 */
+	public static double getCompressionRatio(Map<Character, Integer> frequencies, 
+											Map<Character, String> encoding) {
 		double result;
 		int origin = 0, compressed = 0;
 		for (char letter : frequencies.keySet()) {
 			origin += ONE_BYTE * frequencies.get(letter);	
 		}
 		for (char letter : encoding.keySet()) {
+			// length of the string times its frequency
 			compressed += encoding.get(letter).length() * frequencies.get(letter);
 		}
 		result = ((double) origin) / ((double) compressed);
 		return result;
 	}
-
+	
+	/**
+	 * Huffman Node
+	 *
+	 * @author Kyle Doan
+	 * @version TCSS 342 - Spring 2015
+	 */
 	private static class HuffmanNode implements Comparable<HuffmanNode> {
 		private int weight;
 		private char letter;		
