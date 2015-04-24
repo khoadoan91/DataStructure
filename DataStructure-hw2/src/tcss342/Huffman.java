@@ -32,24 +32,22 @@ public class Huffman {
 	public static Map<Character, Integer> getCharacterFrequencies(String path) {
 		try {
 			FileReader input = new FileReader(path);
-			try {
-				int n = input.read();
-				Map<Character, Integer> result = new HashMap<>();
-				while(n != -1) {
-					char c = (char) n;
-					if (result.containsKey(c)) 
-						result.put(c, result.get(c) + 1);
-					else
-						result.put((char) n, 1);
-					n = input.read();
-				}
-				input.close();
-				return result;
-			} catch (IOException e) {
-				System.out.println(e.getMessage());
-				return null;
+			int n = input.read();
+			Map<Character, Integer> result = new HashMap<>();
+			while(n != -1) {
+				char c = (char) n;
+				if (result.containsKey(c)) 
+					result.put(c, result.get(c) + 1);
+				else
+					result.put((char) n, 1);
+				n = input.read();
 			}
+			input.close();
+			return result;
 		} catch (FileNotFoundException e) {
+			System.out.println(e.getMessage());
+			return null;
+		} catch (IOException e) {
 			System.out.println(e.getMessage());
 			return null;
 		}
@@ -62,6 +60,9 @@ public class Huffman {
 	 * @return
 	 */
 	public static Map<Character, String> getEncoding(Map<Character, Integer> frequencies) {
+		if (frequencies == null) {
+			throw new NullPointerException("The map pass-in is empty");
+		}
 		Map<Character, String> result = new HashMap<>();
 		HuffmanNode root = buildTree(frequencies);
 		encode(root, result, "");
@@ -69,7 +70,7 @@ public class Huffman {
 	}
 	
 	/**
-	 * Build a huffman tree.
+	 * Build a Huffman tree.
 	 * @param freq
 	 * @return
 	 */
@@ -110,6 +111,9 @@ public class Huffman {
 	 */
 	public static double getCompressionRatio(Map<Character, Integer> frequencies, 
 											Map<Character, String> encoding) {
+		if (frequencies == null || encoding == null) {
+			throw new NullPointerException("The map pass-in is empty");
+		}
 		double result;
 		int origin = 0, compressed = 0;
 		for (char letter : frequencies.keySet()) {
@@ -119,6 +123,7 @@ public class Huffman {
 			// length of the string times its frequency
 			compressed += encoding.get(letter).length() * frequencies.get(letter);
 		}
+		System.out.println("origin : " + origin + "\ncompresed : " + compressed);
 		result = ((double) origin) / ((double) compressed);
 		return result;
 	}
