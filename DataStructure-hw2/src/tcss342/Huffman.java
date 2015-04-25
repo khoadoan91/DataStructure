@@ -123,7 +123,6 @@ public class Huffman {
 			// length of the string times its frequency
 			compressed += encoding.get(letter).length() * frequencies.get(letter);
 		}
-		System.out.println("origin : " + origin + "\ncompresed : " + compressed);
 		result = ((double) origin) / ((double) compressed);
 		return result;
 	}
