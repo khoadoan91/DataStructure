@@ -1,30 +1,21 @@
-/*
- * Kyle Doan
- * August 25th, 2015
- * Homework 3
- * AVL Tree - Self-balance Tree 
- */
 package tcss342;
 
-public class AVLTree<T extends Comparable<T>> {
+public class BinarySearchTree<T extends Comparable<T>> {
 	private static class Node<T> {
 		public T item;
-		public int height;
 		public Node<T> parent;
 		public Node<T> left;
 		public Node<T> right;
 		
 		public Node(T item) {
-			this(item, 0, null);
+			this(item, null);
 		}
 		
-		public Node(T item, int height, Node<T> parent) {
+		public Node(T item, Node<T> parent) {
 			this.item = item;
-			this.height = height;
 			this.parent = parent;
 		}
 
-		// find next bigger number of current node.
 		public Node<T> getSuccessor() {
 			if (right != null) {
 				Node<T> successor = right;
@@ -44,16 +35,6 @@ public class AVLTree<T extends Comparable<T>> {
 	private int size;
 	private Node<T> root;
 	
-	private int getNodeHeight (final Node<T> node) {
-		if (node == null) 
-			return -1;
-		return node.height;
-	}
-	
-	private int max(int a, int b) {
-		return a > b ? a : b;
-	}
-	
 	public boolean add(T item) {
 		if (item == null)
 			throw new IllegalArgumentException();
@@ -67,79 +48,26 @@ public class AVLTree<T extends Comparable<T>> {
 	}
 	
 	private boolean add(Node<T> n, T item) {
-		boolean result = false;
 		int cmp = n.item.compareTo(item);
 		if (cmp > 0)
 			// Add child to the left.
 			if (n.left == null) {
-				n.left = new Node<T>(item, 0, n);
+				n.left = new Node<T>(item, n);
 				size++;
-				// the if condition below is wrong in zigzag scenario
-				if (getNodeHeight(n) - getNodeHeight(n.parent.right) == 2) 
-					if (item.compareTo(n.parent.item) < 0)
-						rotateRight(n.parent);
-					else // n.left.item > n.parent.item
-						leftRightRotation(n.parent);
-				result = true;
+				return true;
 			} else
-				result = add(n.left, item);
+				return add(n.left, item);
 		else if (cmp < 0)
 			// Add child to the right.
 			if (n.right == null) {
-				n.right = new Node<T>(item, 0, n);
+				n.right = new Node<T>(item, n);
 				size++;
-				// the if condition below is wrong in zigzag scenario
-				if (getNodeHeight(n) - getNodeHeight(n.parent.left) == 2)
-					if (item.compareTo(n.parent.item) > 0)
-						rotateLeft(n.parent);
-					else	
-						rightLeftRotation(n.parent);
-				result = true;
+				return true;
 			} else
-				result = add(n.right, item);
+				return add(n.right, item);
 		else
-			result = false;
-		if (result) 
-			n.parent.height = max(getNodeHeight(n.parent.left), getNodeHeight(n.parent.right)) + 1;
-		
-		return result;
+			return false;
 	}
-	
-	/*		a
-	 * 		 \				   b
-	 * 		  b	   ---->	  / \
-	 * 		   \			 a   c
-	 * 			c
-	 */
-	/** Rotate binary tree node with left child */  
-	private void rotateLeft(Node<T> n) {
-		n.right.parent = n.parent;
-		n.parent = n.right;
-		n.right = n.parent.left;
-		if (n.right != null)
-			n.right.parent = n;
-		n.parent.left = n;
-	}
-	
-	/* Rotate binary tree node with right child */
-    private void rotateRight(Node<T> n) {
-        n.left.parent = n.parent;
-        n.parent = n.left;
-        n.left = n.parent.right;
-        if (n.left != null)
-        	n.left.parent = n;
-        n.parent.right = n;
-    }
-    
-    private void rightLeftRotation(Node<T> n) {
-    	rotateRight(n.left);
-    	rotateLeft(n);
-    }
-    
-    private void leftRightRotation(Node<T> n) {
-    	rotateLeft(n.right);
-    	rotateRight(n);
-    }
 
 	public boolean remove(T item) {
 		if (item == null)
@@ -252,10 +180,12 @@ public class AVLTree<T extends Comparable<T>> {
 	private void hasValidStructure(Node<T> n) {
 		if (n.left != null) {
 			assert n.left.item.compareTo(n.item) < 0;
+			assert n.left.parent == n;
 			hasValidStructure(n.left);
 		}
 		if (n.right != null) {
 			assert n.right.item.compareTo(n.item) > 0;
+			assert n.right.parent == n;
 			hasValidStructure(n.right);
 		}
 	}
