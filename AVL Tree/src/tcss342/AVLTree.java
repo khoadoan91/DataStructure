@@ -74,12 +74,6 @@ public class AVLTree<T extends Comparable<T>> {
 			if (n.left == null) {
 				n.left = new Node<T>(item, 0, n);
 				size++;
-				// the if condition below is wrong in zigzag scenario
-				if (getNodeHeight(n) - getNodeHeight(n.parent.right) == 2) 
-					if (item.compareTo(n.parent.item) < 0)
-						rotateRight(n.parent);
-					else // n.left.item > n.parent.item
-						leftRightRotation(n.parent);
 				result = true;
 			} else
 				result = add(n.left, item);
@@ -88,21 +82,31 @@ public class AVLTree<T extends Comparable<T>> {
 			if (n.right == null) {
 				n.right = new Node<T>(item, 0, n);
 				size++;
-				// the if condition below is wrong in zigzag scenario
-				if (getNodeHeight(n) - getNodeHeight(n.parent.left) == 2)
-					if (item.compareTo(n.parent.item) > 0)
-						rotateLeft(n.parent);
-					else	
-						rightLeftRotation(n.parent);
 				result = true;
 			} else
 				result = add(n.right, item);
 		else
 			result = false;
-		if (result) 
-			n.parent.height = max(getNodeHeight(n.parent.left), getNodeHeight(n.parent.right)) + 1;
-		
+		if(result)
+			checkBalance(n);
 		return result;
+	}
+	
+	private void checkBalance(Node<T> n) {
+		if (getNodeHeight(n.left) - getNodeHeight(n.right) == 2) { // left heavy
+			if (getNodeHeight(n.left.left) >= getNodeHeight(n.left.right))
+				n = rotateRight(n);
+			else 
+				n = leftRightRotation(n); 
+		} else if (getNodeHeight(n.right) - getNodeHeight(n.left) == 2) {  // right heavy
+			if (getNodeHeight(n.right.right) >= getNodeHeight(n.right.left))
+				n = rotateLeft(n);
+			else 
+				n = rightLeftRotation(n);
+		}
+		if (n.parent == null)
+			this.root = n;
+		n.height = max(getNodeHeight(n.left), getNodeHeight(n.right)) + 1;			
 	}
 	
 	/*		a
@@ -112,33 +116,53 @@ public class AVLTree<T extends Comparable<T>> {
 	 * 			c
 	 */
 	/** Rotate binary tree node with left child */  
-	private void rotateLeft(Node<T> n) {
-		n.right.parent = n.parent;
-		n.parent = n.right;
-		n.right = n.parent.left;
+	private Node<T> rotateLeft(Node<T> n) {
+		Node<T> temp = n.right;
+		temp.parent = n.parent;
+		n.right = temp.left;
 		if (n.right != null)
 			n.right.parent = n;
-		n.parent.left = n;
+		temp.left = n;
+		n.parent = temp;
+		if (temp.parent != null) {
+			if (temp.parent.right == n)
+				temp.parent.right = temp;
+			else if (temp.parent.left == n)
+				temp.parent.left = temp;
+		}
+		temp.height = max(getNodeHeight(temp.left), getNodeHeight(temp.right)) + 1;
+    	n.height = max(getNodeHeight(n.left), getNodeHeight(n.right)) + 1;
+		return temp;
 	}
 	
 	/* Rotate binary tree node with right child */
-    private void rotateRight(Node<T> n) {
-        n.left.parent = n.parent;
-        n.parent = n.left;
-        n.left = n.parent.right;
-        if (n.left != null)
-        	n.left.parent = n;
-        n.parent.right = n;
+    private Node<T> rotateRight(Node<T> n) {
+    	Node<T> temp = n.left;
+    	temp.parent = n.parent;
+    	n.left = temp.right;
+    	if (n.left != null)
+    		n.left.parent = n;
+    	temp.right = n;
+    	n.parent = temp;
+    	if (temp.parent != null) {
+    		if (temp.parent.right == n)
+    			temp.parent.right = temp;
+    		else if (temp.parent.left == n) 
+    			temp.parent.left = temp;
+    	}
+    	temp.height = max(getNodeHeight(temp.left), getNodeHeight(temp.right)) + 1;
+    	n.height = max(getNodeHeight(n.left), getNodeHeight(n.right)) + 1;
+    	return temp;
     }
     
-    private void rightLeftRotation(Node<T> n) {
-    	rotateRight(n.left);
-    	rotateLeft(n);
+    private Node<T> rightLeftRotation(Node<T> n) {
+    	n.right = rotateRight(n.right);
+    	return rotateLeft(n);
     }
     
-    private void leftRightRotation(Node<T> n) {
-    	rotateLeft(n.right);
-    	rotateRight(n);
+    private Node<T> leftRightRotation(Node<T> n) {
+    	n.left = rotateLeft(n.left);
+    	return rotateRight(n);
     }
 
 	public boolean remove(T item) {
@@ -203,6 +227,8 @@ public class AVLTree<T extends Comparable<T>> {
 			n.item = successor.item;
 			remove(successor);
 		}
+		if (n != root)
+			checkBalance(n.parent);
 	}
 
 	public boolean contains(T item) {
@@ -240,6 +266,20 @@ public class AVLTree<T extends Comparable<T>> {
 	public void clear() {
 		size = 0;
 		root = null;
+	}
+	
+	public void preOrder() {
+		System.out.print("Preorder : ");
+		preOrder(root);
+		System.out.print("\n");
+	}
+	
+	private void preOrder(Node<T> n) {
+		System.out.print(n.item + " ");
+		if (n.left != null)
+			preOrder(n.left);
+		if (n.right != null)
+			preOrder(n.right);
 	}
 
 	public void hasValidStructure() {
